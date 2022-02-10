@@ -127,7 +127,7 @@ class SnakeGame:
     # Checks if the game state results in a loss
     def check_loss(self):
         bound = (self.window_size / 2) - 10
-        if self.head.xcor() > bound or self.head.xcor() < (-1 * bound) or self.head.ycor() > bound or self.head.ycor() < (-1 * bound):
+        if self.head.xcor() > bound or self.head.xcor() < (-bound) or self.head.ycor() > bound or self.head.ycor() < (-bound):
             print("out of bounds!")
             return True
         for seg in self.body:
@@ -139,8 +139,8 @@ class SnakeGame:
     # Returns a random spot for a new food object to spawn, allowing overlap with the snake
     def foodspot(self):
         b = (self.window_size / 2) - 20
-        x = randint(-1 * b, b)
-        y = randint(-1 * b, b)
+        x = randint(-b, b)
+        y = randint(-b, b)
         return (x,y)
 
     # Will allow for the neural network to make a decision
