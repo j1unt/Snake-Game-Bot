@@ -4,7 +4,7 @@ from random import randint
 
 # Defines the data to be collected during the game
 # Will be used for input into the neural network
-class TrainingData:
+class Input:
     # Currently tracking:
     # Obstacles (body parts or edge of the screen) in front, right, or left of head
     # The current direction of the head
@@ -27,27 +27,33 @@ class TrainingData:
         return self.dir
 
 class SnakeGame:
-    def __init__(self, window_size = 400, gui = False, training = False):
+    def __init__(self, window_size = 400, gui = False, training = False, food_amt = 1, delay = 0):
         self.score = 0
         self.window_size = window_size
         self.bound = (window_size / 2) - 10
+        self.gui = gui
+        self.food_amt = food_amt
         self.finished = False
-        self.gui = False
         # Array of body parts to check their positions
         self.body = []
         # This will be an array of TrainingData structures
         # It records data about the game state at each move
         self.training = training
         self.moves = []
+        # Delay for game update
+        self.delay = delay
+        # Set up board and gui
+        self.display()
     
     # Initialize the game board
     def display(self):
         # initialize the window
-        self.window = turtle.Screen()
-        self.window.title("Snake Game")
-        self.window.bgcolor("blue")
-        self.window.setup(self.window_size, self.window_size)
-        self.window.tracer(0)
+        if self.gui:
+            self.window = turtle.Screen()
+            self.window.title("Snake Game")
+            self.window.bgcolor("blue")
+            self.window.setup(self.window_size, self.window_size)
+            self.window.tracer(0)
 
         # initialize the snake
         self.head = turtle.Turtle()
@@ -57,14 +63,17 @@ class SnakeGame:
         self.head.goto(0, 0)
         self.head.direction = "stop"
 
+        self.food = []
         # initialize the food
-        self.food = turtle.Turtle()
-        self.food.speed(0)
-        self.food.shape("circle")
-        self.food.color("red")
-        self.food.penup()
-        a,b = self.food_spot()
-        self.food.goto(a,b)
+        for k in range(self.food_amt):
+            f = turtle.Turtle()
+            f.speed(0)
+            f.shape("circle")
+            f.color("red")
+            f.penup()
+            a,b = self.food_spot()
+            f.goto(a,b)
+            self.food.append(f)
     
     # Direction changing functions
     def up(self):
@@ -101,45 +110,50 @@ class SnakeGame:
     # Run main game loop
     def run(self):
 
-        # Sets update delay
-        delay = 0.2
-
         # Adds controls
-
+        """
         self.window.listen()
         self.window.onkeypress(self.up, "w")
         self.window.onkeypress(self.down, "s")
         self.window.onkeypress(self.right, "d")
         self.window.onkeypress(self.left, "a")
-
+        """
 
         # Structure: Check for loss -> Check if eating food -> Make new move
         while self.finished == False:
-            self.window.update()
+            if self.gui:
+                self.window.update()
             # Check for loss
             if self.check_loss() == True:
                 print("finished")
-                self.finished = True
+                self.finished = True # Useless failsafe
+                # Record final body positions and hide them
                 body_positions = []
                 for k in self.body:
                     body_positions.append(k.pos())
+                    k.goto(self.bound + 100, self.bound + 100)
+                # Clear board
+                for k in range(self.food_amt):
+                    self.food[k].goto(self.bound + 100, self.bound + 100)
+                self.head.goto(self.bound + 100, self.bound + 100)
                 return (self.score, self.head.pos(), body_positions, self.moves)
             # Check if eating food
-            if self.head.distance(self.food) < 20:
-                print("eating food")
-                # Update score
-                self.score += 1
-                # Move food
-                a,b = self.food_spot()
-                self.food.goto(a,b)
-                # Add new body part
-                print("adding body part")
-                bp = turtle.Turtle()
-                bp.speed(0)
-                bp.shape("square")
-                bp.color("green")
-                bp.penup()
-                self.body.append(bp)
+            for k in range(self.food_amt):
+                if self.head.distance(self.food[k]) < 20:
+                    print("eating food")
+                    # Update score
+                    self.score += 1
+                    # Move food
+                    a,b = self.food_spot()
+                    self.food[k].goto(a,b)
+                    # Add new body part
+                    print("adding body part")
+                    bp = turtle.Turtle()
+                    bp.speed(0)
+                    bp.shape("square")
+                    bp.color("green")
+                    bp.penup()
+                    self.body.append(bp)
             # Update body part positions
             for i  in range(len(self.body)- 1, 0, -1):
                 x = self.body[i - 1].xcor()
@@ -150,11 +164,11 @@ class SnakeGame:
                 y = self.head.ycor()
                 self.body[0].goto(x, y)
             # Make new move
-            # self.make_decision()
+            self.make_decision()
             if self.training:
                 self.record_data()
             self.move()
-            time.sleep(delay)
+            time.sleep(self.delay)
 
     # Checks if the game state results in a loss
     def check_loss(self):
@@ -225,7 +239,7 @@ class SnakeGame:
                         left = True
                     elif self.check_left(seg):
                         front = True
-        state = TrainingData(front, right, left, self.head.direction)
+        state = Input(front, right, left, self.head.direction)
         self.moves.append(state)
     
     def check_up(self, seg):
@@ -249,5 +263,4 @@ class SnakeGame:
         return False
 
 game = SnakeGame(gui = True, training = True)
-game.display()
 score, head_pos, body_positions, training_data = game.run()
