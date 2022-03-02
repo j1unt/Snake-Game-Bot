@@ -26,4 +26,8 @@ def gen_data():
 output = 0
 training_data, y = gen_data()
 
+model = SnakeNN(4, 1, 32)
+model.input(training_data, y)
+model.train()
+
 # Train NN
