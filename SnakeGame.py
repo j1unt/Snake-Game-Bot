@@ -7,7 +7,7 @@ from random import randint
 class Input:
     # Currently tracking:
     # Obstacles (body parts or edge of the screen) in front, right, or left of head
-    # The current direction of the head
+    # The predicted direction of the head
     def __init__(self, f, r, l, dir):
         self.obs_front = f
         self.obs_right = r
@@ -206,40 +206,40 @@ class SnakeGame:
     # Records the game state in the moves array
     def record_data(self):
         # First, find the information
-        front = False
-        right = False
-        left = False
+        front = 0
+        right = 0
+        left = 0
         for seg in self.body:
             if seg.distance(self.head) == 20:
                 if self.head.direction == "up":
                     if self.check_up(seg):
-                        front = True
+                        front = 1
                     elif self.check_right(seg):
-                        right = True
+                        right = 1
                     elif self.check_left(seg):
-                        left = True
+                        left = 1
                 if self.head.direction == "down":
                     if self.check_down(seg):
-                        front = True
+                        front = 1
                     elif self.check_right(seg):
-                        left = True
+                        left = 1
                     elif self.check_left(seg):
-                        right = True
+                        right = 1
                 if self.head.direction == "right":
                     if self.check_up(seg):
-                        left = True
+                        left = 1
                     elif self.check_right(seg):
-                        front = True
+                        front = 1
                     elif self.check_down(seg):
-                        right = True
+                        right = 1
                 if self.head.direction == "left":
                     if self.check_up(seg):
-                        right = True
+                        right = 1
                     elif self.check_down(seg):
-                        left = True
+                        left = 1
                     elif self.check_left(seg):
-                        front = True
-        state = Input(front, right, left, self.head.direction)
+                        front = 1
+        state = Input(front, right, left, 1)
         self.moves.append(state)
     
     def check_up(self, seg):
@@ -262,5 +262,5 @@ class SnakeGame:
             return True
         return False
 
-game = SnakeGame(gui = True, training = True)
-score, head_pos, body_positions, training_data = game.run()
+game = SnakeGame(gui = True, training = True, food_amt = 1, delay = 0.1)
+#score, head_pos, body_positions, training_data = game.run()
