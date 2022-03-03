@@ -27,7 +27,7 @@ class Input:
         return self.dir
 
 class SnakeGame:
-    def __init__(self, window_size = 400, gui = False, training = False, food_amt = 1, delay = 0):
+    def __init__(self, window_size = 400, gui = False, training = False, food_amt = 1, delay = 0, playing = False, model = None):
         self.score = 0
         self.window_size = window_size
         self.bound = (window_size / 2) - 10
@@ -44,16 +44,20 @@ class SnakeGame:
         self.delay = delay
         # Set up board and gui
         self.display()
+        # True if the model will be making decisions
+        self.playing = playing
+        # Takes a trained model to make decisions
+        self.model = model
     
     # Initialize the game board
     def display(self):
         # initialize the window
-        if self.gui:
-            self.window = turtle.Screen()
-            self.window.title("Snake Game")
-            self.window.bgcolor("blue")
-            self.window.setup(self.window_size, self.window_size)
-            self.window.tracer(0)
+        print("Starting GUI")
+        self.window = turtle.Screen()
+        self.window.title("Snake Game")
+        self.window.bgcolor("blue")
+        self.window.setup(self.window_size, self.window_size)
+        self.window.tracer(0)
 
         # initialize the snake
         self.head = turtle.Turtle()
@@ -121,7 +125,7 @@ class SnakeGame:
 
         # Structure: Check for loss -> Check if eating food -> Make new move
         while self.finished == False:
-            if self.gui:
+            if self.gui == True:
                 self.window.update()
             # Check for loss
             if self.check_loss() == True:
@@ -133,9 +137,10 @@ class SnakeGame:
                     body_positions.append(k.pos())
                     k.goto(self.bound + 100, self.bound + 100)
                 # Clear board
-                for k in range(self.food_amt):
-                    self.food[k].goto(self.bound + 100, self.bound + 100)
-                self.head.goto(self.bound + 100, self.bound + 100)
+                self.window.clear()
+                # for k in range(self.food_amt):
+                    # self.food[k].goto(self.bound + 100, self.bound + 100)
+                # self.head.goto(self.bound + 100, self.bound + 100)
                 return (self.score, self.head.pos(), body_positions, self.moves)
             # Check if eating food
             for k in range(self.food_amt):
@@ -163,10 +168,9 @@ class SnakeGame:
                 x = self.head.xcor()
                 y = self.head.ycor()
                 self.body[0].goto(x, y)
+            self.current_state = self.record_data()
             # Make new move
-            self.make_decision()
-            if self.training:
-                self.record_data()
+            self.make_decision(self.playing)
             self.move()
             time.sleep(self.delay)
 
@@ -189,19 +193,40 @@ class SnakeGame:
         return (x,y)
 
     # Will allow for the neural network to make a decision
-    def make_decision(self, is_random = True):
-        if is_random:
-            r = randint(1,4)
-            if r == 1:
-                self.up()
-            elif r == 2:
-                self.down()
-            elif r == 3:
-                self.right()
-            else:
-                self.left()
+    def make_decision(self, dec = False):
+        if not dec:
+            self.change_dir()
         else: # Otherwise, ask the bot for a decision
-            pass
+            i = [self.current_state.get_obs_front(), 
+                self.current_state.get_obs_right(), 
+                self.current_state.get_obs_left()]
+            d = self.model.decide(i)
+            if d == 1:
+                self.keep_dir()
+            else:
+                self.change_dir()
+
+    def keep_dir(self):
+        dir = self.head.direction
+        if dir == "up":
+            self.up()
+        elif dir == "down":
+            self.down()
+        elif dir == "right":
+            self.right()
+        elif dir == "left":
+            self.left()
+
+    def change_dir(self):
+        r = randint(1,4)
+        if r == 1:
+            self.up()
+        elif r == 2:
+            self.down()
+        elif r == 3:
+            self.right()
+        else:
+            self.left()
 
     # Records the game state in the moves array
     def record_data(self):
@@ -241,6 +266,7 @@ class SnakeGame:
                         front = 1
         state = Input(front, right, left, 1)
         self.moves.append(state)
+        return state
     
     def check_up(self, seg):
         if self.head.ycor() + 20 == seg.ycor():
@@ -262,5 +288,7 @@ class SnakeGame:
             return True
         return False
 
-game = SnakeGame(gui = True, training = True, food_amt = 1, delay = 0.1)
+# Runs a game with random moves!
+
+#game = SnakeGame(gui = True, training = True, food_amt = 1, delay = 0.1)
 #score, head_pos, body_positions, training_data = game.run()
