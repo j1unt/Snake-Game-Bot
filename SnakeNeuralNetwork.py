@@ -32,7 +32,7 @@ class SnakeNN:
 
     def train(self):
         pos = 0
-        epochs = 20
+        epochs = 1500
         for k in range(epochs):
             # Generate Dataset
             dataset = []

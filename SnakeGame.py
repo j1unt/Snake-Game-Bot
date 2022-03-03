@@ -7,7 +7,7 @@ from random import randint
 class Input:
     # Currently tracking:
     # Obstacles (body parts or edge of the screen) in front, right, or left of head
-    # The predicted direction of the head
+    # The correct choice of direction for the head (WIP)
     def __init__(self, f, r, l, dir):
         self.obs_front = f
         self.obs_right = r
@@ -52,7 +52,7 @@ class SnakeGame:
     # Initialize the game board
     def display(self):
         # initialize the window
-        print("Starting GUI")
+        #print("Starting GUI")
         self.window = turtle.Screen()
         self.window.title("Snake Game")
         self.window.bgcolor("blue")
@@ -129,7 +129,7 @@ class SnakeGame:
                 self.window.update()
             # Check for loss
             if self.check_loss() == True:
-                print("finished")
+                #print("finished")
                 self.finished = True # Useless failsafe
                 # Record final body positions and hide them
                 body_positions = []
@@ -145,14 +145,14 @@ class SnakeGame:
             # Check if eating food
             for k in range(self.food_amt):
                 if self.head.distance(self.food[k]) < 20:
-                    print("eating food")
+                    #print("eating food")
                     # Update score
                     self.score += 1
                     # Move food
                     a,b = self.food_spot()
                     self.food[k].goto(a,b)
                     # Add new body part
-                    print("adding body part")
+                    #print("adding body part")
                     bp = turtle.Turtle()
                     bp.speed(0)
                     bp.shape("square")
@@ -177,11 +177,11 @@ class SnakeGame:
     # Checks if the game state results in a loss
     def check_loss(self):
         if self.head.xcor() > self.bound or self.head.xcor() < (-self.bound) or self.head.ycor() > self.bound or self.head.ycor() < (-self.bound):
-            print("out of bounds!")
+            #print("out of bounds!")
             return True
         for seg in self.body:
             if seg.distance(self.head) < 20:
-                print("hit body!")
+                #print("hit body!")
                 return True
         return False
     
@@ -234,6 +234,7 @@ class SnakeGame:
         front = 0
         right = 0
         left = 0
+        correct_dir = 1
         for seg in self.body:
             if seg.distance(self.head) == 20:
                 if self.head.direction == "up":
@@ -264,7 +265,10 @@ class SnakeGame:
                         left = 1
                     elif self.check_left(seg):
                         front = 1
-        state = Input(front, right, left, 1)
+        if front == 1:
+            correct_dir = 0
+                   
+        state = Input(front, right, left, correct_dir)
         self.moves.append(state)
         return state
     

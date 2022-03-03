@@ -6,9 +6,11 @@ import numpy as np
 import math
 
 # CONSTANTS
-TRAIN_AMT = 100
+TRAIN_AMT = 1000
 MID_LAYER_NEURONS = 4
-GAMES = 10
+BATCH_SIZE = 20
+OUTPUT_SHAPE = 1
+GAMES = 20
 
 # Functions
 def gen_data():
@@ -21,6 +23,7 @@ def gen_data():
             x = [move.get_obs_front(), move.get_obs_right(), move.get_obs_left()]
             data.append(x)
             dirs.append(move.get_dir())
+        print("Game: ", k)
     return data, dirs
     
 # Main Code
@@ -28,7 +31,7 @@ output = 0
 training_data, y = gen_data()
 
 # Train NN
-model = SnakeNN(4, 1, 32)
+model = SnakeNN(MID_LAYER_NEURONS, OUTPUT_SHAPE, BATCH_SIZE)
 model.input(training_data, y)
 model.train()
 
