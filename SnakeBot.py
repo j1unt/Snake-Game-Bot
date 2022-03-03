@@ -6,10 +6,10 @@ import numpy as np
 import math
 
 # CONSTANTS
-TRAIN_AMT = 1000
-MID_LAYER_NEURONS = 4
+TRAIN_AMT = 500
+MID_LAYER_NEURONS = 20
 BATCH_SIZE = 20
-OUTPUT_SHAPE = 1
+OUTPUT_SHAPE = 2
 GAMES = 20
 
 # Functions
@@ -20,7 +20,7 @@ def gen_data():
         game = SnakeGame(200, False, True, 20, 0, False, None)
         s, h, b, td = game.run()
         for move in td:
-            x = [move.get_obs_front(), move.get_obs_right(), move.get_obs_left()]
+            x = [move.get_obs_front(), move.get_obs_right(), move.get_obs_left(), move.get_wall()]
             data.append(x)
             dirs.append(move.get_dir())
         print("Game: ", k)
@@ -37,5 +37,5 @@ model.train()
 
 # Play game with trained model
 for k in range(GAMES):
-    game = SnakeGame(400, True, True, 1, 0.1, True, model)
+    game = SnakeGame(300, True, True, 5, 0.15, True, model)
     game.run()

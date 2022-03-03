@@ -1,5 +1,6 @@
 import turtle
 import time
+import torch
 from random import randint
 
 # Defines the data to be collected during the game
@@ -8,10 +9,11 @@ class Input:
     # Currently tracking:
     # Obstacles (body parts or edge of the screen) in front, right, or left of head
     # The correct choice of direction for the head (WIP)
-    def __init__(self, f, r, l, dir):
+    def __init__(self, f, r, l, w, dir):
         self.obs_front = f
         self.obs_right = r
         self.obs_left = l
+        self.wall = w
         self.dir = dir
     
     def get_obs_front(self):
@@ -25,6 +27,9 @@ class Input:
 
     def get_dir(self):
         return self.dir
+    
+    def get_wall(self):
+        return self.wall
 
 class SnakeGame:
     def __init__(self, window_size = 400, gui = False, training = False, food_amt = 1, delay = 0, playing = False, model = None):
@@ -48,6 +53,7 @@ class SnakeGame:
         self.playing = playing
         # Takes a trained model to make decisions
         self.model = model
+        self.current_state = Input(0,0,0,0,1)
     
     # Initialize the game board
     def display(self):
@@ -65,7 +71,7 @@ class SnakeGame:
         self.head.color("yellow")
         self.head.penup()
         self.head.goto(0, 0)
-        self.head.direction = "stop"
+        self.head.direction = "up"
 
         self.food = []
         # initialize the food
@@ -168,9 +174,9 @@ class SnakeGame:
                 x = self.head.xcor()
                 y = self.head.ycor()
                 self.body[0].goto(x, y)
-            self.current_state = self.record_data()
             # Make new move
             self.make_decision(self.playing)
+            self.current_state = self.record_data()
             self.move()
             time.sleep(self.delay)
 
@@ -199,9 +205,11 @@ class SnakeGame:
         else: # Otherwise, ask the bot for a decision
             i = [self.current_state.get_obs_front(), 
                 self.current_state.get_obs_right(), 
-                self.current_state.get_obs_left()]
+                self.current_state.get_obs_left(), self.current_state.get_wall()]
             d = self.model.decide(i)
-            if d == 1:
+            d = d.detach().numpy()
+            print("Decision: ", d)
+            if d[1] < d[0]:
                 self.keep_dir()
             else:
                 self.change_dir()
@@ -220,21 +228,42 @@ class SnakeGame:
     def change_dir(self):
         r = randint(1,4)
         if r == 1:
-            self.up()
+            if self.head.direction != "up":
+                self.up()
+            else:
+                self.left()
         elif r == 2:
-            self.down()
+            if self.head.direction != "down":
+                self.down()
+            else:
+                self.right()
         elif r == 3:
-            self.right()
-        else:
+            if self.head.direction != "right":
+                self.right()
+            else:
+                self.up()
+        elif self.head.direction != "left":
             self.left()
+        else:
+            self.down()
 
     # Records the game state in the moves array
     def record_data(self):
         # First, find the information
+        correct_dir = [1,0]
         front = 0
         right = 0
         left = 0
-        correct_dir = 1
+        wall_front = 0
+        if self.check_wall_up() and self.head.direction == "up":
+            wall_front = 1
+        if self.check_wall_right() and self.head.direction == "right":
+            wall_front = 1
+        if self.check_wall_left() and self.head.direction == "left":
+            wall_front = 1
+        if self.check_wall_down() and self.head.direction == "down":
+            wall_front = 1
+        
         for seg in self.body:
             if seg.distance(self.head) == 20:
                 if self.head.direction == "up":
@@ -265,10 +294,9 @@ class SnakeGame:
                         left = 1
                     elif self.check_left(seg):
                         front = 1
-        if front == 1:
-            correct_dir = 0
-                   
-        state = Input(front, right, left, correct_dir)
+        if front == 1 or wall_front == 1:
+            correct_dir = [0,1]
+        state = Input(front, right, left, wall_front, correct_dir)
         self.moves.append(state)
         return state
     
@@ -289,6 +317,26 @@ class SnakeGame:
     
     def check_left(self, seg):
         if self.head.xcor() - 20 == seg.xcor():
+            return True
+        return False
+
+    def check_wall_up(self):
+        if self.head.ycor() + 40 >= self.bound:
+            return True
+        return False
+
+    def check_wall_down(self):
+        if self.head.ycor() - 40 <= self.bound:
+            return True
+        return False
+    
+    def check_wall_right(self):
+        if self.head.xcor() + 40 >= self.bound:
+            return True
+        return False
+    
+    def check_wall_left(self):
+        if self.head.xcor() - 40 <= self.bound:
             return True
         return False
 
