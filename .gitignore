@@ -81,6 +81,11 @@ target/
 profile_default/
 ipython_config.py
 
+# Python Files
+Snake-Game-Bot/
+SnakeNN.py
+SnakeNNTF.py
+
 # pyenv
 .python-version
 
