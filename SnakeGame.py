@@ -9,7 +9,7 @@ from random import randint
 class Input:
     # Currently tracking:
     # Obstacles (body parts or edge of the screen) in front, right, or left of head
-    # whether or not the head is in the right direction to reach the food (1 yes, -1 no)
+    # Whether or not the head is in the right direction to reach the food (1 yes, -1 no)
     # The correct choice of direction for the head
     def __init__(self, f, r, l, i, dir):
         self.obs_front = f
@@ -43,27 +43,28 @@ class SnakeGame:
         self.finished = False
         # Array of body parts to check their positions
         self.body = []
-        # This will be an array of TrainingData structures
+        # This will be an array of Input structures
         # It records data about the game state at each move
         self.training = training
         self.moves = []
         # Tracks the last position of the head
         self.old_head_x = 0
         self.old_head_y = 0
-        # Delay for game update
+        # Window update delay
         self.delay = delay
-        # Set up board and gui
+        # Sets up board and gui
         self.display()
         # True if the model will be making decisions
         self.playing = playing
-        # Takes a trained model to make decisions
+        # A trained model
         self.model = model
+        # Initial state of the head
         self.current_state = Input(0,0,0,0,0)
 
-        # Tracking variables to stop cancel runs if the snake is circling
-        self.max_moves = 40
+        # Tracking variables to cancel test runs
+        self.max_moves = 80
         self.test_moves = 0
-        self.circling = False
+        self.maxed = False
     
     # Initialize the game board
     def display(self):
@@ -128,7 +129,7 @@ class SnakeGame:
             if self.gui == True:
                 self.window.update()
             # Check for loss
-            if self.check_loss() == True or self.circling == True:
+            if self.check_loss() == True or self.maxed == True:
                 # Record final data
                 self.record_data(True)
                 # Record final body positions
@@ -143,7 +144,6 @@ class SnakeGame:
             # Check if eating food
             for k in range(self.food_amt):
                 if self.head.distance(self.food[k]) < 20:
-                    #print("eating food")
                     # Update score
                     self.score += 1
                     # Move food
@@ -199,22 +199,20 @@ class SnakeGame:
         else: # Otherwise, ask the bot for a decision
             self.test_moves += 1
             print("Move:", self.test_moves)
+            # End the game if move limit is reached
             if self.test_moves == self.max_moves:
-                print("Circling")
-                self.circling = True
+                print("Hit max moves")
+                self.maxed = True
                 self.test_moves = 0
-            i1 = [self.current_state.get_obs_left(), 
-                self.current_state.get_obs_front(), 
-                self.current_state.get_obs_right(),
-                self.current_state.get_in_dir(), -1]
-            i2 = [self.current_state.get_obs_left(), 
-                self.current_state.get_obs_front(), 
-                self.current_state.get_obs_right(),
-                self.current_state.get_in_dir(), 0]
-            i3 = [self.current_state.get_obs_left(), 
-                self.current_state.get_obs_front(), 
-                self.current_state.get_obs_right(),
-                self.current_state.get_in_dir(), 1]
+            # This submits the three possible decisions to the network
+            # It chooses the direction with the highest corresponding return value
+            l = self.current_state.get_obs_left()
+            f = self.current_state.get_obs_front()
+            r = self.current_state.get_obs_right()
+            a = self.current_state.get_in_dir()
+            i1 = [l, f, r, a, -1]
+            i2 = [l, f, r, a, 0]
+            i3 = [l, f, r, a, 1]
             d1 = self.model.decide(i1)
             d2 = self.model.decide(i2)
             d3 = self.model.decide(i3)
@@ -239,73 +237,72 @@ class SnakeGame:
     def record_data(self, dead = False):
         # Information to aqcuire
         correct_output = 0
-        front = 0
-        right = 0
-        left = 0
-        angle = 0
+        front = 1
+        right = 1
+        left = 1
+        in_right_dir = 0
         
         # Checks for objects to the front, left, and right of the head
         for seg in self.body:
             if seg.distance(self.head) == 20:
                 if self.head.direction == "up":
                     if self.check_up(seg) or self.check_wall_up():
-                        front = 1
+                        front = -1
                     elif self.check_right(seg) or self.check_wall_right():
-                        right = 1
+                        right = -1
                     elif self.check_left(seg) or self.check_wall_left():
-                        left = 1
+                        left = -1
                 elif self.head.direction == "down":
                     if self.check_down(seg) or self.check_wall_down():
-                        front = 1
+                        front = -1
                     elif self.check_right(seg) or self.check_wall_right():
-                        left = 1
+                        left = -1
                     elif self.check_left(seg) or self.check_wall_left():
-                        right = 1
+                        right = -1
                 elif self.head.direction == "right":
                     if self.check_up(seg) or self.check_wall_up():
-                        left = 1
+                        left = -1
                     elif self.check_right(seg) or self.check_wall_right():
-                        front = 1
+                        front = -1
                     elif self.check_down(seg) or self.check_wall_down():
-                        right = 1
+                        right = -1
                 elif self.head.direction == "left":
                     if self.check_up(seg) or self.check_wall_up():
-                        right = 1
+                        right = -1
                     elif self.check_down(seg) or self.check_wall_down():
-                        left = 1
+                        left = -1
                     elif self.check_left(seg) or self.check_wall_left():
                         front = 1
         if self.head.direction == "up":
             if self.check_wall_up():
-                front = 1
+                front = -1
             elif self.check_wall_right():
-                right = 1
+                right = -1
             elif self.check_wall_left():
-                left = 1
+                left = -1
         elif self.head.direction == "down":
             if self.check_wall_down():
-                front = 1
+                front = -1
             elif self.check_wall_right():
-                left = 1
+                left = -1
             elif self.check_wall_left():
-                right = 1
+                right = -1
         elif self.head.direction == "right":
             if self.check_wall_up():
-                left = 1
+                left = -1
             elif self.check_wall_right():
-                front = 1
+                front = -1
             elif self.check_wall_down():
-                right = 1
+                right = -1
         elif self.head.direction == "left":
             if self.check_wall_up():
-                right = 1
+                right = -1
             elif self.check_wall_down():
-                left = 1
+                left = -1
             elif self.check_wall_left():
-                front = 1
+                front = -1
         # Check if head direction is the most efficient to find food
         # If head is going towards the most desirable direction, return 1, else return -1
-        in_right_dir = 0
         food_pos_x, food_pos_y = self.food[0].xcor(), self.food[0].ycor()
         head_pos_x, head_pos_y = self.head.xcor(), self.head.ycor()
         if abs(head_pos_x - food_pos_x) > abs(head_pos_y - food_pos_y):
@@ -320,8 +317,8 @@ class SnakeGame:
                     in_right_dir = 1
                 else:
                     in_right_dir = -1
-        else:
-            # Food is further from head y coord
+        elif head_pos_y - food_pos_y != 0:
+            # Food is further from head y coord 
             if head_pos_y < food_pos_y:
                 if self.head.direction == "up":
                     in_right_dir = 1
@@ -460,6 +457,6 @@ class SnakeGame:
             return True
         return False
 
-# This runs a game with random moves! (Or commands if you enable them!)
+# This runs a game with random moves! (Or commands if you enable them)
 # game = SnakeGame(800, gui = True, training = True, food_amt = 1, delay = 0.1)
 # score, head_pos, body_positions, training_data = game.run()

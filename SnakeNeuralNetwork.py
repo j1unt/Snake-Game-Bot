@@ -32,7 +32,7 @@ class SnakeNN:
 
     def train(self):
         pos = 0
-        epochs = 15000
+        epochs = 37500
         for k in range(epochs):
             # Generate Dataset
             dataset = []
@@ -48,7 +48,7 @@ class SnakeNN:
 
             # Calculate loss
             loss = self.criterion(forward, parallel_y)
-            print('Iteration: ', k, '  Loss: ', loss.item())
+            print("Iteration: ", k, "  Loss: ", loss.item())
 
             # Zero the gradient and backpropagate
             self.optimizer.zero_grad()

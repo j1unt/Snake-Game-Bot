@@ -6,9 +6,9 @@ import numpy as np
 import math
 
 # CONSTANTS
-TRAIN_AMT = 10000
-MID_LAYER_NEURONS = 25
-BATCH_SIZE = 20
+TRAIN_AMT = 5000
+MID_LAYER_NEURONS = 14
+BATCH_SIZE = 4
 OUTPUT_SHAPE = 1
 GAMES = 1000
 
@@ -17,7 +17,7 @@ def gen_data():
     data = []
     dirs = []
     for k in range(TRAIN_AMT):
-        game = SnakeGame(200, False, True, 1, 0, False, None)
+        game = SnakeGame(300, False, True, 15, 0, False, None)
         s, h, b, td = game.run()
         for move in td:
             x = [move.get_obs_left(), move.get_obs_front(), move.get_obs_right(), move.get_in_dir(), move.get_dir()]
