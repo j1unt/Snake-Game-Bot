@@ -8,5 +8,4 @@ Snake moves towards the food and generally survives, but does so in a convoluted
 Currently working on:
 Overtraining usually makes the snake run in a circle. Planning to give more valuable input, and tweaking the model structure to train more effectively.  
 
-https://user-images.githubusercontent.com/68975535/157800238-0d8f0846-3b25-48ad-9db1-e1da9add6e5f.mp4
-
+https://user-images.githubusercontent.com/68975535/157800561-6e162634-fe58-4d82-b53e-2fc18e12a79b.mp4
