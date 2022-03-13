@@ -24,10 +24,17 @@ Turtle graphics is a major inhibitor for training efficiency since it requires t
 
 # Sources
 Used for the general structure of the project:
+
 https://towardsdatascience.com/today-im-going-to-talk-about-a-small-practical-example-of-using-neural-networks-training-one-to-6b2cbd6efdb3
+
 Used for efficiently creating the snake game:
+
 https://www.geeksforgeeks.org/create-a-snake-game-using-turtle-in-python/
+
 These and other sources used for understanding machine learning:
+
 https://www.youtube.com/watch?v=Wo5dMEP_BbI&list=PLQVvvaa0QuDcjD5BAw2DxE6OF2tius3V3
+
 https://www.youtube.com/c/3blue1brown
+
 https://towardsdatascience.com/how-to-build-your-own-neural-network-from-scratch-in-python-68998a08e4f6
