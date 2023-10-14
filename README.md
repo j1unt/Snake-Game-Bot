@@ -21,20 +21,3 @@ https://user-images.githubusercontent.com/68975535/157800561-6e162634-fe58-4d82-
 Training sets from over 10,000 games played usually make the snake run in a circle. Planning to give more valuable input to discourage simply surviving, and tweak the model structure to train more effectively.
 
 Turtle graphics is a major inhibitor for training efficiency since it requires turtle objects to be created for a game to run. I may implement a workaround in the future, or switch to a different graphics library entirely.
-
-# Sources
-Used for the general structure of the project:
-
-https://towardsdatascience.com/today-im-going-to-talk-about-a-small-practical-example-of-using-neural-networks-training-one-to-6b2cbd6efdb3
-
-Used for efficiently creating the snake game:
-
-https://www.geeksforgeeks.org/create-a-snake-game-using-turtle-in-python/
-
-These and other sources used for understanding machine learning:
-
-https://www.youtube.com/watch?v=Wo5dMEP_BbI&list=PLQVvvaa0QuDcjD5BAw2DxE6OF2tius3V3
-
-https://www.youtube.com/c/3blue1brown
-
-https://towardsdatascience.com/how-to-build-your-own-neural-network-from-scratch-in-python-68998a08e4f6
